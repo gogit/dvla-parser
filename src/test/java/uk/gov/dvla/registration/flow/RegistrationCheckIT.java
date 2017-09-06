@@ -30,40 +30,31 @@ import uk.gov.dvla.registration.source.FileTypeFilter;
  */
 public class RegistrationCheckIT {
 
-	private static final String registrationInputXPath = "//*[@id='Vrm']";
-	private static final String formSubmitXPath = "//button[@class='button']";
-	private static final String registrationXPath = "//span[@class='reg-mark']";
-	private static final String makeXPath = "//div[@id='pr3']//ul[1]/li[2]/span[2]/strong";
-	private static final String colorXPath = "//div[@id='pr3']//ul[1]/li[3]/span[2]/strong";
-
 	@Test
 	public void testOnDvlaSite() throws Exception {
 
+
 		getFileSource().scan().stream().forEach(f -> {
 			try {
+				WebDriver driver = new PhantomJSDriver();
+
 				try (Stream<String> lines = Files.lines(Paths.get(f.getAbsolutePath()))) {
 					lines.forEach(s -> {
 
-						WebDriver driver = new PhantomJSDriver();
-						driver.get("https://vehicleenquiry.service.gov.uk/ConfirmVehicle");
-
 						String rec[] = s.split(",");
 						try {
-							List<ExpectedActual> eas = new RegistrationCheck(registrationInputXPath, formSubmitXPath,
-									registrationXPath, makeXPath, colorXPath).execute(driver,
-											new RegistrationMakeColor(rec[0], rec[1], rec[2]));
+							List<ExpectedActual> eas = new RegistrationCheck().execute(driver,
+									new RegistrationMakeColor(rec[0], rec[1], rec[2]));
 							Assert.assertEquals(rec[0], eas.get(0).getActual());
 							Assert.assertEquals(rec[1], eas.get(1).getActual());
 							Assert.assertEquals(rec[2], eas.get(2).getActual());
 						} catch (Exception e) {
 							Assert.fail(e.toString());
-						}
-						finally{
+						} finally {
 							driver.close();
 						}
 					});
 				}
-
 			} catch (IOException e) {
 				Assert.fail(e.toString());
 			}

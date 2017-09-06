@@ -10,5 +10,5 @@ import cucumber.api.junit.Cucumber;
 		"classpath:features/registrationCheck.feature" }, glue = "uk.gov.dvla.registration.flow.step", plugin = {
 				"pretty", "html:target/cucumber" })
 public class RegistrationCucumberTest {
-
+	
 }

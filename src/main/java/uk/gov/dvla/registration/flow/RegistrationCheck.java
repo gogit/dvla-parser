@@ -3,11 +3,12 @@ package uk.gov.dvla.registration.flow;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
 import uk.gov.dvla.registration.model.ExpectedActual;
 import uk.gov.dvla.registration.model.RegistrationMakeColor;
+import uk.gov.dvla.registration.page.ConfirmVehicleHomePage;
+import uk.gov.dvla.registration.page.ConfirmVehiclePage;
 
 /**
  * The "registration check" webflow is pre-configured with a set of xpath
@@ -25,42 +26,29 @@ import uk.gov.dvla.registration.model.RegistrationMakeColor;
  */
 public class RegistrationCheck implements WebFlow<RegistrationMakeColor, ExpectedActual> {
 
-	private final String registrationInputXPath;
-
-	private final String formSubmitXPath;
-
-	private final String registrationNoXPath;
-
-	private final String makeXPath;
-
-	private final String colorXPath;
-
-	public RegistrationCheck(final String registrationInputXPath, final String formSubmitXPath,
-			final String registrationNoXPath, final String makeXPath, final String colorXPath) {
-		this.registrationInputXPath = registrationInputXPath;
-		this.formSubmitXPath = formSubmitXPath;
-		this.registrationNoXPath = registrationNoXPath;
-		this.makeXPath = makeXPath;
-		this.colorXPath = colorXPath;
-	}
-
 	@Override
-	public List<ExpectedActual> execute(WebDriver driver, RegistrationMakeColor input) throws InterruptedException {
+	public List<ExpectedActual> execute(WebDriver driver, RegistrationMakeColor input)
+			throws InterruptedException, IllegalStateException {
 
 		final List<ExpectedActual> ea = new ArrayList<>();
 
-		driver.findElement(By.xpath(registrationInputXPath)).sendKeys(input.getRegistrationNo());
+		ConfirmVehicleHomePage homePage = new ConfirmVehicleHomePage(driver);
 
-		driver.findElement(By.xpath(formSubmitXPath)).click();
+		homePage.setRegistrationNumber(input.getRegistrationNo());
+		homePage.clickRegistrationCheckButton();
+
+		ConfirmVehiclePage confirmVehiclePage = new ConfirmVehiclePage(driver);
+
+		if (!confirmVehiclePage.isPageOpened()) {
+			throw new IllegalStateException("Could not open confirmVehiclePage");
+		}
 
 		ea.add(new ExpectedActual().setExpected(input.getRegistrationNo())
-				.setActual(driver.findElement(By.xpath(registrationNoXPath)).getText()));
+				.setActual(confirmVehiclePage.getRegistrationNumber()));
 
-		ea.add(new ExpectedActual().setExpected(input.getMake())
-				.setActual(driver.findElement(By.xpath(makeXPath)).getText()));
+		ea.add(new ExpectedActual().setExpected(input.getMake()).setActual(confirmVehiclePage.getMake()));
 
-		ea.add(new ExpectedActual().setExpected(input.getRegistrationNo())
-				.setActual(driver.findElement(By.xpath(colorXPath)).getText()));
+		ea.add(new ExpectedActual().setExpected(input.getColor()).setActual(confirmVehiclePage.getColor()));
 
 		return ea;
 	}
